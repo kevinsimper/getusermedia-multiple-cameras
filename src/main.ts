@@ -1,4 +1,6 @@
 const startButton = document.querySelector("#start");
+const recordButton = document.querySelector("#record");
+const stopButton = document.querySelector("#stop");
 
 startButton.addEventListener("click", () => {
   startCameras();
@@ -19,7 +21,7 @@ async function startCameras() {
     })
     .join("")}`;
 
-  videos.forEach((video, index) => {
+  videos.slice(0, 1).forEach((video, index) => {
     navigator.mediaDevices
       .getUserMedia({ video: { deviceId: video.deviceId } })
       .then(function (mediaStream) {
@@ -31,6 +33,30 @@ async function startCameras() {
         videoElement.onloadedmetadata = function (e) {
           videoElement.play();
         };
+        let chunks = [];
+        let type = "";
+        const mediaRecorder = new MediaRecorder(mediaStream);
+        recordButton.addEventListener("click", () => {
+          console.log("recording");
+          mediaRecorder.start();
+        });
+        stopButton.addEventListener("click", () => {
+          console.log("stoping");
+          mediaRecorder.stop();
+        });
+        mediaRecorder.ondataavailable = function (e) {
+          console.log(e);
+          chunks.push(e.data);
+          let video = document.createElement("video");
+          document.querySelector("#playback").appendChild(video);
+          var blob = new Blob(chunks);
+          const videoUrl = URL.createObjectURL(blob);
+          video.src = videoUrl;
+          video.onloadedmetadata = function (e) {
+            video.play();
+          };
+        };
+
         document.querySelector("#devices").innerHTML = JSON.stringify(
           devices,
           null,
